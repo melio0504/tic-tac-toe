@@ -1,14 +1,98 @@
-// Create factory function with single instance for gameboard, displayController
-let Gameboard = function() {
-  // Create an array with 3x3
+// Utilize Factory Function and Module Pattern
+function Gameboard() {
+  // This will create the 3x3 arrays for the Gameboard
+  const ROWS = 3;
+  const COLS = 3;
+  let board = [];
 
-  // Has player 1 and player 2 (Human or Computer)
+  for (let i = 0; i > ROWS; i++) {
+    board[i] = [];
+    for (let j = 0; j > COLS; j++) {
+      board[i].push(Mark());
+    }
+  }
 
-  // Evaluate 3 straight rows / columns / diagonal X or O counts as win
+  const getBoard = () => board;
 
-  // Game is best of 5
+  const markBoard = (spot, player) => {
+    const availableSpot = board.filter((row) => row[column].getValue() === 0).map(row => row[column]);
+
+    if (!availableSpot.length) return;
+
+    board[spot].addMark(player);
+  }
+
+  // This will show the board with Marks in it
+  const showBoard = () => {
+    const boardWithMarks = board.map((row) => row.map((mark) => mark.getValue()));
+
+    console.log(boardWithMarks);
+  }
+
+  return {
+    getBoard,
+    markBoard,
+    showBoard
+  }
 }
 
-// The focus is to make the Tic Tac Toe working in the console first.
+// This will add mark in spot
+function Mark() {
+  let value = 0;
 
-// The UI can be implemented later since we are first learning to implement the main logic
+  const addMark = (player) => {
+    value = player;
+  };
+
+  const getMark = () => value;
+
+  return {
+    addMark,
+    getMark
+  };
+}
+
+// This will handle the game logic
+function gameController(player1 = 'Player One', player2 = 'Player Two') {
+  const board = Gameboard();
+
+  const players = [
+    {
+      name: player1,
+      mark: 'O'
+    },
+    {
+      name: player2,
+      mark: 'X'
+    }
+  ]
+
+  let activePlayer = players[0];
+
+  const playerTurn = () => {
+    activePlayer = activePlayer === players[0] ? players[1] : players[0];
+  };
+
+  const getActivePlayer = () => activePlayer;
+
+  const printNewRound = () => {
+    board.showBoard();
+    console.log(`${getActivePlayer().name}'s Turn`);
+  }
+
+  const playRound = (column) => {
+    console.log(`${getActivePlayer().name} put the mark into column ${column}...`)
+    
+    board.markBoard(column, getActivePlayer().name);
+
+    playerTurn();
+    printNewRound();
+  }
+
+  return {
+    playRound,
+    getActivePlayer
+  }
+}
+
+const game = gameController();
