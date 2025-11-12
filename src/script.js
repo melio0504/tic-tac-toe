@@ -1,56 +1,42 @@
 // Utilize Factory Function and Module Pattern
-function Gameboard() {
-  // This will create the 3x3 arrays for the Gameboard
+function Player(name, mark) {
+  return { name, mark };
+}
+
+const Gameboard = (() => {
   const ROWS = 3;
   const COLS = 3;
-  let board = [];
 
-  for (let i = 0; i < ROWS; i++) {
-    board[i] = [];
-    for (let j = 0; j < COLS; j++) {
-      board[i].push(Mark());
-    }
+  let board = Array.from({length: ROWS}, () => Array.from({ length: COLS}, () => ''));
+
+  const getBoard = () => board.map(row => row.slice());
+
+  const reset = () => {
+    board = Array.from({length: ROWS}, () => Array.from({length: COLS}, () => ''));
   }
 
-  const getBoard = () => board;
+  const setMark = (row, col, mark) => {
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return false;
 
-  const markBoard = (row, col, player) => {
-    const availableSpot = board.filter((row) => row[row][col].getMark() === 0).map(row => row[column]);
+    if (board[row][col] !== '') return false;
 
-    if (!availableSpot.length) return;
+    board[row][col] = mark;
 
-    board[row][col].addMark(player);
+    return true;
   }
 
-  // This will show the board with Marks in it
+  const getCell = (row, col) => {
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return null;
+    
+    return board[row][col];
+  }
+
   const showBoard = () => {
-    const boardWithMarks = board.map((row) => row.map((mark) => mark.getValue()));
+    console.log('\n' + board.map(row => row.map(cell => cell === '' ? '-': cell)).join(' | ').join('\n---------\n') + '\n');
 
-    console.log(boardWithMarks);
+    return { getBoard, setMark, getCell, showBoard, reset}
   }
-
-  return {
-    getBoard,
-    markBoard,
-    showBoard
-  }
-}
-
-// This will add mark in spot
-function Mark() {
-  let value = 0;
-
-  const addMark = (player) => {
-    value = player;
-  };
-
-  const getMark = () => value;
-
-  return {
-    addMark,
-    getMark
-  };
-}
+})
 
 // This will handle the game logic
 function gameController(player1 = 'Player One', player2 = 'Player Two') {
