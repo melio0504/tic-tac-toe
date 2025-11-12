@@ -13,4 +13,21 @@
 body {
   height: 100vh;
   line-height: 1.5;
+
+  footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    margin-top: auto;
+    background: black;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+  }
 }
