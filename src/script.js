@@ -13,7 +13,7 @@ const Gameboard = (() => {
 
   const reset = () => {
     board = Array.from({length: ROWS}, () => Array.from({length: COLS}, () => ''));
-  }
+  };
 
   const setMark = (row, col, mark) => {
     if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return false;
@@ -23,62 +23,123 @@ const Gameboard = (() => {
     board[row][col] = mark;
 
     return true;
-  }
+  };
 
   const getCell = (row, col) => {
     if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return null;
     
     return board[row][col];
-  }
-
-  const showBoard = () => {
-    console.log('\n' + board.map(row => row.map(cell => cell === '' ? '-': cell)).join(' | ').join('\n---------\n') + '\n');
-
-    return { getBoard, setMark, getCell, showBoard, reset}
-  }
-})
-
-// This will handle the game logic
-function gameController(player1 = 'Player One', player2 = 'Player Two') {
-  const board = Gameboard();
-
-  const players = [
-    {
-      name: player1,
-      mark: 'O'
-    },
-    {
-      name: player2,
-      mark: 'X'
-    }
-  ]
-
-  let activePlayer = players[0];
-
-  const playerTurn = () => {
-    activePlayer = activePlayer === players[0] ? players[1] : players[0];
   };
 
-  const getActivePlayer = () => activePlayer;
+  const showBoard = () => {
+    const formatted = board.map(row => row.map(cell => (cell === '' ? '-' : cell))
+                      .join(' | '))
+                      .join('\n---------\n');
+                      
+    console.log('\n' + formatted + '\n');
+  };
 
-  const printNewRound = () => {
-    board.showBoard();
-    console.log(`${getActivePlayer().name}'s Turn`);
-  }
+  return { getBoard, setMark, getCell, showBoard, reset };
+})();
+
+// This will handle the game logic
+function GameController(player1Name = 'Player One', player2Name = 'Player Two') {
+  const players = [Player(player1Name, 'O'), Player(player2Name, 'X')];
+
+  let activeIndex = 0;
+  let gameOver = false;
+  let winner = null;
+
+  const getActivePlayer = () => players[activeIndex];
+  const switchPlayer = () => { activeIndex = 1 - activeIndex; };
+
+  const resetGame = () => {
+    Gameboard.reset();
+    activeIndex = 0;
+    gameOver = false;
+    winner = null;
+  };
+
+  const checkWinner = () => {
+    const b = Gameboard.getBoard();
+
+    // Rows
+    for (let r = 0; r < 3; r++) {
+      if (b[r][0] !== '' && b[r][0] === b[r][1] && b[r][1] === b[r][2]) {
+        return b[r][0];
+      }
+    }
+
+    // Columns
+    for (let c = 0; c < 3; c++) {
+      if (b[0][c] !== '' && b[0][c] === b[1][c] && b[1][c] === b[2][c]) {
+        return b[0][c];
+      }
+    }
+
+    // Diagonals
+    if (b[0][0] !== '' && b[0][0] === b[1][1] && b[1][1] === b[2][2]) return b[0][0];
+    if (b[0][2] !== '' && b[0][2] === b[1][1] && b[1][1] === b[2][0]) return b[0][2];
+
+    return null;
+  };
+
+  const isTie = () => {
+    const b = Gameboard.getBoard();
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        if (b[r][c] === '') return false;
+      }
+    }
+    return checkWinner() === null;
+  };
+
 
   const playRound = (row, col) => {
-    console.log(`${getActivePlayer().name} put the mark into column ${column}...`)
-    
-    board.markBoard(row, col, getActivePlayer().name);
+    if (gameOver) {
+      return { success: false, message: 'Game is over. Reset to play again.' };
+    }
 
-    playerTurn();
-    printNewRound();
-  }
+    const player = getActivePlayer();
+    const placed = Gameboard.setMark(row, col, player.mark);
+
+    if (!placed) {
+      return { success: false, message: 'Invalid move. The cell is already occupied or out of bounds' };
+    }
+
+    const winMark = checkWinner();
+
+    if (winMark) {
+      gameOver = true;
+      winner = players.find(p => p.mark === winMark);
+      
+      Gameboard.showBoard();
+
+      return { success: true, message: `${winner.name} wins!`, winner: winner };
+    }
+
+    if (isTie()) {
+      gameOver = true;
+
+      Gameboard.showBoard();
+
+      return { success: true, message: 'Tie game (draw).' };
+    }
+
+    switchPlayer();
+    Gameboard.showBoard();
+
+    return { success: true, message: `Move accepted. Next: ${getActivePlayer().name}`, nextPlayer: getActivePlayer() };
+  };
 
   return {
     playRound,
-    getActivePlayer
-  }
+    getActivePlayer,
+    resetGame,
+    isGameOver: () => gameOver,
+    getWinner: () => winner,
+    showBoard: Gameboard.showBoard
+  };
 }
 
-const game = gameController();
+const game = GameController('Alice', 'Bob');
