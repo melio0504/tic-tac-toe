@@ -1,6 +1,6 @@
 # Tic Tac Toe
 
-> [NOTE]
+> [!NOTE]
 > A fun, simple project built for practice and experimentation.
 
 ![Screenshot](/assets/images/screenshot.png)
