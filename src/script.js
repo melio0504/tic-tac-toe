@@ -104,7 +104,7 @@ function GameController(player1Name = 'Player One', player2Name = 'Player Two') 
     const placed = Gameboard.setMark(row, col, player.mark);
 
     if (!placed) {
-      return { success: false, message: 'Invalid move. The cell is already occupied or out of bounds' };
+      return { success: false, message: 'You are not that stupid. The cell is already occupied.' };
     }
 
     const winMark = checkWinner();
@@ -142,4 +142,82 @@ function GameController(player1Name = 'Player One', player2Name = 'Player Two') 
   };
 }
 
-const game = GameController('Alice', 'Bob');
+const DisplayController = (() => {
+  const boardContainer = document.querySelector('#board');
+  const messageDiv = document.querySelector('#message');
+
+  const p1Input = document.querySelector("#player1");
+  const p2Input = document.querySelector("#player2");
+  const startBtn = document.querySelector("#startBtn");
+  const resetBtn = document.querySelector("#resetBtn");
+
+  let game;
+
+  const render = () => {
+    const board = Gameboard.getBoard();
+    boardContainer.textContent = '';
+
+    board.forEach((row, r) => {
+      row.forEach((cell, c) => {
+        const cellDiv = document.createElement('div');
+        cellDiv.classList.add('cell');
+        
+        if (cell === 'X') {
+          const img = document.createElement('img');
+          img.src = 'assets/images/X.png';
+          img.classList.add('mark-img');
+          cellDiv.appendChild(img);
+        }
+
+        if (cell === 'O') {
+          const img = document.createElement('img');
+          img.src = 'assets/images/O.png';
+          img.classList.add('mark-img');
+          cellDiv.appendChild(img);
+        }
+
+        cellDiv.addEventListener('click', () => handleClick(r, c));
+
+        boardContainer.appendChild(cellDiv);
+      });
+    });
+  };
+
+  const handleClick = (row, col) => {
+    if (!game || game.isGameOver()) return;
+
+    const result = game.playRound(row, col);
+    render();
+
+    if (result.message) {
+      messageDiv.textContent = result.message;
+    };
+  };
+
+  startBtn.addEventListener('click', () => {
+    const p1 = p1Input.value || 'Player One';
+    const p2 = p2Input.value || 'Player Two';
+
+    game = GameController(p1, p2);
+    Gameboard.reset();
+
+    messageDiv.textContent = `${game.getActivePlayer().name}'s turn (${game.getActivePlayer().mark})`;
+
+    render();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    if (!game) return;
+
+    game.resetGame();
+    Gameboard.reset();
+
+    messageDiv.textContent = `${game.getActivePlayer().name}'s turn (${game.getActivePlayer().mark})`;
+
+    render();
+  })
+
+  return { render };
+})();
+
+DisplayController.render();
